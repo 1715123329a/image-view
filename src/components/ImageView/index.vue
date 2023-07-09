@@ -1,5 +1,5 @@
 <template>
-    <div class="container" @click="handleClose" ref="imgContainer">
+    <div class="container" @click="handleClose" ref="imgContainerRef">
         <div class="main">
             <!-- 左右按钮 -->
             <Indiactor :index="index" :imgLen="data.length" :dir="ARROW_DIRECTION.LEFT"
@@ -27,13 +27,14 @@
 </template>
 
 <script setup lang='ts'>
+import { ref } from 'vue';
 import ImageContainer from './ImageContainer.vue'
 import Indiactor from './Indiactor.vue'
 import ControlBar from './ControlBar.vue'
+import { downloadIamge } from '../../utils/index'
 import type { ImgData } from './type';
 import { ARROW_DIRECTION, ZOOM } from './type';
 import { useImageIndex, useImageData } from './hooks'
-import { ref } from 'vue';
 
 /* 
  * @props
@@ -58,7 +59,7 @@ const props = withDefaults(defineProps<{
     }
 )
 
-const imgContainer = ref<HTMLDivElement>()
+const imgContainerRef = ref<HTMLDivElement>()
 
 const images: ImgData[] = props.data.map((item, index) => {
     return {
@@ -118,7 +119,7 @@ const handleImageReset = () => {
 
 const handleClose = (event: any) => {
     const target = event.target;
-    if (props.destroyOnClose && target === imgContainer.value) {
+    if (props.destroyOnClose && target === imgContainerRef.value) {
         closeImageView()
     }
 }
@@ -131,32 +132,10 @@ const closeImageView = () => {
 
 const handleImageSave = () => {
     const imageUrl = imgData.value[index.value].imgUrl; // 这里替换为你的图片URL  
-    downs(imageUrl)
+    downloadIamge(imageUrl)
 }
 
-const downloadIamge = (imgsrc: string, name: string) => {
-    let image = new Image();
-    image.setAttribute("crossOrigin", "anonymous");
-    image.src = imgsrc;
-    image.onload = function () {
-        let canvas = document.createElement("canvas");
-        canvas.width = image.width;
-        canvas.height = image.height;
-        let context = canvas.getContext("2d") as CanvasDrawImage;
-        context.drawImage(image, 0, 0, image.width, image.height);
-        let url = canvas.toDataURL("image/png");
-        let a = document.createElement("a");
-        let event = new MouseEvent("click");
-        a.download = name || "photo";
-        a.href = url;
-        a.dispatchEvent(event);
-    };
-}
 
-const downs = (imageUrl: string) => {
-    let name = new Date().getTime();
-    downloadIamge(imageUrl, `${name}`);
-}
 
 
 </script>
